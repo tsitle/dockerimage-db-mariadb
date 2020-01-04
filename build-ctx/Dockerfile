@@ -155,7 +155,7 @@ RUN \
 	#|| exit 1; \
 	#
 	echo "**** install runtime packages ****"; \
-	MARIADB_PACK_VER="$(apt-cache policy mariadb-server | grep "Candidate: " | cut -f2- -d: | tr -d [:space:])"; \
+	MARIADB_PACK_VER="$(apt-cache policy mariadb-server | grep "Candidate: " | grep "${CF_MARIADB_VERSION}\." | cut -f2- -d: | tr -d [:space:])"; \
 	echo "MARIADB_PACK_VER='$MARIADB_PACK_VER'"; \
 	[ -n "$MARIADB_PACK_VER" ] \
 	#&& apt-cache show mariadb-server \
