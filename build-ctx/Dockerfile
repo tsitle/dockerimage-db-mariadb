@@ -187,16 +187,6 @@ VOLUME /var/lib/mysql
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
-#RUN update-locale LANG=de_DE.UTF-8
-
-#ENV LANG de_DE.UTF-8
-#ENV LANGUAGE de
-#ENV LC_ALL de_DE.UTF-8
-
-# set up timezone
-#ENV TZ=Europe/Berlin
-#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
 # startup script
 COPY files/custom/docker-entrypoint.sh /usr/local/bin/
 

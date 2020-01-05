@@ -8,11 +8,38 @@ VAR_MYNAME="$(basename "$0")"
 
 # ----------------------------------------------------------------------
 
+export HOST_IP=$(/sbin/ip route|awk '/default/ { print $3 }')
+echo "$HOST_IP dockerhost" >> /etc/hosts
+
+# ----------------------------------------------------------------------
+
 CF_SYSUSR_MYSQL_USER_ID=${CF_SYSUSR_MYSQL_USER_ID:-911}
 CF_SYSUSR_MYSQL_GROUP_ID=${CF_SYSUSR_MYSQL_GROUP_ID:-911}
 
+# mainly for /etc/cont-init.d/10-adduser:
 export PUID=$CF_SYSUSR_MYSQL_USER_ID
 export PGID=$CF_SYSUSR_MYSQL_GROUP_ID
+
+# mainly for /etc/cont-init.d/40-initialise-db:
+export MYSQL_ROOT_PASSWORD=$CF_DB_ROOT_PASSWORD
+export MYSQL_USER=$CF_DB_USER_NAME
+export MYSQL_PASSWORD=$CF_DB_USER_PASS
+export MYSQL_DATABASE=$CF_DB_SCHEME_NAME
+
+# ----------------------------------------------------------
+
+function _sleepBeforeAbort() {
+	# to allow the user to see this message in 'docker logs -f CONTAINER' we wait before exiting
+	echo "$VAR_MYNAME: (sleeping 5s before aborting)" >/dev/stderr
+	local TMP_CNT=0
+	while [ $TMP_CNT -lt 5 ]; do
+		sleep 1
+		echo "$VAR_MYNAME: (...)" >/dev/stderr
+		TMP_CNT=$(( TMP_CNT + 1 ))
+	done
+	echo "$VAR_MYNAME: (aborting now)" >/dev/stderr
+	exit 1
+}
 
 # ----------------------------------------------------------
 
@@ -94,19 +121,6 @@ function _createUserGroup() {
 	return 0
 }
 
-# changing the User/Group ID is also done by
-#   files/lsio-baseimage_ubuntu_bionic/fs_root/etc/cont-init.d/10-adduser
-# but we need the User/Group ID to be changed here for chown+chmod
-
-_createUserGroup "abc" "${CF_SYSUSR_MYSQL_USER_ID:-0}" "${CF_SYSUSR_MYSQL_GROUP_ID:-0}" || exit 1
-
-# ----------------------------------------------------------------------
-
-export MYSQL_ROOT_PASSWORD=$CF_DB_ROOT_PASSWORD
-export MYSQL_USER=$CF_DB_USER_NAME
-export MYSQL_PASSWORD=$CF_DB_USER_PASS
-export MYSQL_DATABASE=$CF_DB_SCHEME_NAME
-
 # ----------------------------------------------------------------------
 # Volumes
 
@@ -123,15 +137,21 @@ function _dep_setOwnerAndPerms_recursive() {
 		find "$1" -type d -exec chmod "$4" "{}" \;
 		find "$1" -type f -exec chmod "$5" "{}" \;
 	}
+	return 0
+}
+
+# ----------------------------------------------------------------------
+
+# changing the User/Group ID is also done by
+#   files/lsio-baseimage_ubuntu_bionic/fs_root/etc/cont-init.d/10-adduser
+# but we need the User/Group ID to be changed here for chown+chmod
+
+_createUserGroup "abc" "${CF_SYSUSR_MYSQL_USER_ID}" "${CF_SYSUSR_MYSQL_GROUP_ID}" || {
+	_sleepBeforeAbort
 }
 
 _dep_setOwnerAndPerms_recursive "/var/lib/mysql" $CF_SYSUSR_MYSQL_USER_ID $CF_SYSUSR_MYSQL_GROUP_ID "750" "640"
 _dep_setOwnerAndPerms_recursive "/root/extDbFiles" $CF_SYSUSR_MYSQL_USER_ID $CF_SYSUSR_MYSQL_GROUP_ID "750" "640"
-
-# ----------------------------------------------------------------------
-
-export HOST_IP=$(/sbin/ip route|awk '/default/ { print $3 }')
-echo "$HOST_IP dockerhost" >> /etc/hosts
 
 # ----------------------------------------------------------------------
 
@@ -147,6 +167,29 @@ if [ -n "$CF_MARIADB_INNODB_LOG_FILE_SIZE" ]; then
 			-e "s/^#innodb_log_file_size\t= .*$/innodb_log_file_size   = $CF_MARIADB_INNODB_LOG_FILE_SIZE/g" \
 			-i /etc/mysql/my.cnf
 	rm /var/lib/mysql/ib_log* 2>/dev/null
+fi
+
+# ----------------------------------------------------------------------
+
+if [ -n "$CF_LANG" ]; then
+	echo "$VAR_MYNAME: Updating locale with '$CF_LANG'..."
+	update-locale LANG=$CF_LANG || {
+		_sleepBeforeAbort
+	}
+	export LANG=$CF_LANG
+	export LANGUAGE=$CF_LANG
+	export LC_ALL=$CF_LANG
+fi
+
+if [ -n "$CF_TIMEZONE" ]; then
+	[ ! -f "/usr/share/zoneinfo/$CF_TIMEZONE" ] && {
+		echo "$VAR_MYNAME: Could not find timezone file for '$CF_TIMEZONE'. Aborting." >/dev/stderr
+		_sleepBeforeAbort
+	}
+	echo "$VAR_MYNAME: Setting timezone to '$CF_TIMEZONE'..."
+	export TZ=$CF_TIMEZONE
+	ln -snf /usr/share/zoneinfo/$CF_TIMEZONE /etc/localtime
+	echo $CF_TIMEZONE > /etc/timezone
 fi
 
 # ----------------------------------------------------------------------
