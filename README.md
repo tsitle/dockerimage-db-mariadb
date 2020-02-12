@@ -2,8 +2,12 @@
 
 Provides a MariaDB database server.
 
-MariaDB 10.1 is compatible with MySQL 5.7.  
+MariaDB 10.0 is compatible with MySQL 5.6.  
+MariaDB 10.1 is compatible with MySQL 5.6.  
+MariaDB 10.2 is compatible with MySQL 5.6/5.7.
+MariaDB 10.3 is compatible with MySQL 5.7/8.0.
 MariaDB 10.4 is compatible with MySQL 8.0.
+MariaDB 10.5 is compatible with MySQL 8.0.
 
 ## DB-Server TCP Port
 The DB-Server is listening on TCP port 3306 by default.
