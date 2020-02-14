@@ -174,12 +174,14 @@ LVAR_IMAGE_VER="$LVAR_MARIADB_VERSION"
 _getCommonFile "s6_overlay/s6-overlay-${LVAR_S6_OVERLAY_VERSION}-${LVAR_S6_OVERLAY_CPUARCH}.tgz" || exit 1
 #_getCommonFile "qemu_binary_static/qemu-${LVAR_QEMU_CPUARCH}-static" || exit 1
 
+LVAR_SRC_OS_IMAGE="tsle/os-ubuntu-${LVAR_UBUNTU_RELEASE}-${LVAR_DEBIAN_DIST}:${LVAR_UBUNTU_VERSION}"
+docker pull $LVAR_SRC_OS_IMAGE || exit 1
 echo
 
 docker build \
+		--build-arg CF_SRC_OS_IMAGE="$LVAR_SRC_OS_IMAGE" \
 		--build-arg CF_CPUARCH_DEB_DIST="$LVAR_DEBIAN_DIST" \
 		--build-arg CF_UBUNTU_RELEASE="$LVAR_UBUNTU_RELEASE" \
-		--build-arg CF_UBUNTU_VERSION="$LVAR_UBUNTU_VERSION" \
 		--build-arg CF_S6_OVERLAY_VERSION="$LVAR_S6_OVERLAY_VERSION" \
 		--build-arg CF_CPUARCH_S6_OVERLAY="$LVAR_S6_OVERLAY_CPUARCH" \
 		--build-arg CF_MARIADB_VERSION="$LVAR_MARIADB_VERSION" \
