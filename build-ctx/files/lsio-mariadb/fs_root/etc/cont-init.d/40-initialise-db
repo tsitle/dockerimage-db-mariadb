@@ -24,7 +24,6 @@ start_mysql() {
 
 # test for existence of mysql file in datadir and start initialise if not present
 if [ ! -d "$DATADIR/mysql" ]; then
-
 	# set basic sql command
 	tempSqlFile='/tmp/mysql-first-time.sql'
 	cat > "$tempSqlFile" <<-EOSQL
@@ -60,18 +59,18 @@ EOFPASS
 			[ "${MYSQL_PASSWORD+x}" ] && \
 			[ "${#MYSQL_PASSWORD}" -gt "4" ]; then
 		read -r -d '' MYSQL_DB_SETUP << EOM
-CREATE DATABASE ${MYSQL_DATABASE};
+CREATE DATABASE \`${MYSQL_DATABASE}\`;
 CREATE USER '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
-GRANT ALL PRIVILEGES ON ${MYSQL_DATABASE}.* TO '${MYSQL_USER}'@'%';
+GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%';
 EOM
 	fi
 
 	# add rest of sql commands based on password set or not
 	cat >> "$tempSqlFile" <<-EONEWSQL
-$MYSQL_DB_SETUP
 $MYSQL_PASS
 GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
 DROP DATABASE IF EXISTS test ;
+$MYSQL_DB_SETUP
 EONEWSQL
 	echo "Setting Up Initial Databases"
 
@@ -99,7 +98,6 @@ EONEWSQL
 	# do some more owning to finish our first run sequence
 	chown -R abc:abc "$MYSQL_DIR" /config/log/mysql
 fi
-# end: if [ ! -d "$DATADIR/mysql" ]
 
 # own the folder the pid for mysql runs in
 chown -R abc:abc /var/run/mysqld

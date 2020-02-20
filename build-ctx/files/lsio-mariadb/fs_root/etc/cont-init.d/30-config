@@ -1,6 +1,6 @@
 #!/usr/bin/with-contenv bash
 
-# make folders if required
+# make folders if required
 mkdir -p \
 	"$DATADIR" \
 	/config/log/mysql \
@@ -8,10 +8,10 @@ mkdir -p \
 
 if [ -e /etc/mysql/mariadb.conf.d/50-server.cnf ]; then \
 	CONF_FILE="/etc/mysql/mariadb.conf.d/50-server.cnf";
- else CONF_FILE="/etc/mysql/my.cnf"; 
+else CONF_FILE="/etc/mysql/my.cnf";
 fi
 
-# configure my.cnf and mysqld_safe
+# configure my.cnf and mysqld_safe
 sed -i 's/key_buffer\b/key_buffer_size/g' "$CONF_FILE"
 sed -ri 's/^(bind-address|skip-networking)/;\1/' "$CONF_FILE"
 sed -i s#/var/log/mysql#/config/log/mysql#g "$CONF_FILE"
@@ -19,7 +19,7 @@ sed -i -e 's/\(user.*=\).*/\1 abc/g' "$CONF_FILE"
 sed -i -e "s#\\(datadir.*=\\).*#\\1 $DATADIR#g" "$CONF_FILE"
 sed -i "s/user='mysql'/user='abc'/g" /usr/bin/mysqld_safe
 
-# setup custom cnf file
+# setup custom cnf file
 [[ ! -f /config/custom.cnf ]] && \
 	cp /defaults/my.cnf /config/custom.cnf
 [[ ! -L /etc/mysql/conf.d/custom.cnf && -f /etc/mysql/conf.d/custom.cnf ]] && \
@@ -27,7 +27,7 @@ sed -i "s/user='mysql'/user='abc'/g" /usr/bin/mysqld_safe
 [[ ! -L /etc/mysql/conf.d/custom.cnf ]] && \
 	ln -s /config/custom.cnf /etc/mysql/conf.d/custom.cnf
 
-# set permissions
+# set permissions
 [[ -e /etc/mysql/debian.cnf ]] && \
 	(chown abc:abc /etc/mysql/debian.cnf && chmod 644 /etc/mysql/debian.cnf)
 chmod -R 777 \

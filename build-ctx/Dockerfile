@@ -1,6 +1,6 @@
 #
 # Based on
-#   https://github.com/linuxserver/docker-mariadb
+#   https://github.com/linuxserver/docker-mariadb/tree/110.3.18mariabionic-ls37
 # and
 #   https://github.com/linuxserver/docker-baseimage-ubuntu branch bionic
 #
@@ -9,7 +9,6 @@ ARG CF_SRC_OS_IMAGE
 
 FROM ${CF_SRC_OS_IMAGE}
 
-ARG CF_UBUNTU_RELEASE
 ARG CF_CPUARCH_DEB_DIST
 ENV CF_CPUARCH_DEB_DIST=${CF_CPUARCH_DEB_DIST}
 
@@ -52,12 +51,6 @@ ENV \
 # copy S6 overlay tarball
 COPY cache/s6_overlay/s6-overlay-${OVERLAY_VERSION}-${OVERLAY_ARCH}.tgz /tmp/
 
-# copy QEMU
-#COPY cache/qemu_binary_static/qemu-${CF_CPUARCH_QEMU}-static /usr/bin/
-
-# copy sources list
-#COPY files/lsio-baseimage_ubuntu_${CF_UBUNTU_RELEASE}/sources.list.${CF_CPUARCH_DEB_DIST} /etc/apt/
-
 RUN \
 	#echo "**** install apt-utils and locales ****"; \
 	#apt-get update \
@@ -97,30 +90,12 @@ RUN \
 			/app \
 			/config \
 			/defaults \
-	|| exit 1; \
-	#if [ "$ARCH" != "amd64" ]; then \
-	#	#echo "**** add qemu ****"; \
-	#	# ------------------------------------------------
-	#	#curl -o \
-	#	#		/usr/bin/qemu-${CF_CPUARCH_QEMU}-static -L \
-	#	#		"https://lsio-ci.ams3.digitaloceanspaces.com/qemu-${CF_CPUARCH_QEMU}-static" \
-	#	#chmod +x /usr/bin/qemu-${CF_CPUARCH_QEMU}-static \
-	#	# ------------------------------------------------
-	#else \
-	#	echo -n; \
-	#fi; \
-	#
-	echo "**** cleanup ****"; \
-	apt-get clean \
-	&& rm -rf \
-			/tmp/* \
-			/var/lib/apt/lists/* \
-			/var/tmp/*
+	|| exit 1;
 
 # add local files
-COPY files/lsio-baseimage_ubuntu_${CF_UBUNTU_RELEASE}/fs_root/ /
+ENV TMP_UBUNTU_RELEASE=bionic
+COPY files/lsio-baseimage_ubuntu_${TMP_UBUNTU_RELEASE}/fs_root/ /
 
-#ENTRYPOINT ["/init"]
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # end lsio-baseimage_ubuntu_bionic
@@ -129,7 +104,7 @@ COPY files/lsio-baseimage_ubuntu_${CF_UBUNTU_RELEASE}/fs_root/ /
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-# beg lsio-mariadb (v10.1)
+# beg lsio-mariadb (v10.3)
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # environment variables
@@ -144,11 +119,12 @@ ENV DATADIR=/var/lib/mysql
 #			gnupg
 
 RUN \
-	apt-get update; \
 	#echo "add mariadb repository ****"; \
 	#echo "(redundant on armhf platform, but added for consistent dockerfile on all platforms) ****"; \
 	#apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8 \
-	#&& add-apt-repository 'deb [arch=amd64,arm64,ppc64el] http://mirror.i3d.net/pub/mariadb/repo/10.1/ubuntu bionic main' \
+	#&& echo "deb http://mirror.sax.uk.as61049.net/mariadb/repo/${CF_MARIADB_VERSION}/ubuntu bionic main" >> /etc/apt/sources.list.d/mariadb.list \
+	#&& echo "deb-src http://mirror.sax.uk.as61049.net/mariadb/repo/${CF_MARIADB_VERSION}/ubuntu bionic main" >> /etc/apt/sources.list.d/mariadb.list \
+	#&& apt-get update \
 	#|| exit 1; \
 	#
 	echo "**** install runtime packages ****"; \
@@ -178,7 +154,7 @@ EXPOSE 3306
 VOLUME /var/lib/mysql
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-# end lsio-mariadb (v10.1)
+# end lsio-mariadb (v10.3)
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
