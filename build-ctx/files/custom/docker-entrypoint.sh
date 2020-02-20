@@ -174,6 +174,11 @@ if [ -n "$CF_MYSQL_INNODB_LOG_FILE_SIZE" ]; then
 			-i /etc/mysql/my.cnf
 	rm /var/lib/mysql/ib_log* 2>/dev/null
 fi
+if [ -n "$CF_MYSQL_SQLMODE" ]; then
+	echo "$VAR_MYNAME: Setting MYSQL_SQLMODE=$CF_MYSQL_SQLMODE"
+	echo "[mysqld]" >> /etc/mysql/my.cnf
+	echo "sql_mode = $CF_MYSQL_SQLMODE" >> /etc/mysql/my.cnf
+fi
 
 # ----------------------------------------------------------------------
 
