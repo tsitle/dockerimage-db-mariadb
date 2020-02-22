@@ -24,7 +24,7 @@ export PGID=$CF_SYSUSR_MYSQL_GROUP_ID
 export MYSQL_ROOT_PASSWORD=$CF_DB_ROOT_PASSWORD
 export MYSQL_USER=$CF_DB_USER_NAME
 export MYSQL_PASSWORD=$CF_DB_USER_PASS
-export MYSQL_DATABASE=$CF_DB_SCHEME_NAME
+export MYSQL_DATABASE=$CF_DB_SCHEMA_NAME
 
 # ----------------------------------------------------------
 
