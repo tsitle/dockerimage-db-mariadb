@@ -155,7 +155,7 @@ LVAR_GITHUB_BASE="https://raw.githubusercontent.com/tsitle/docker_images_common_
 
 LVAR_DEBIAN_DIST="$(_getCpuArch debian_dist)"
 LVAR_DEBIAN_RELEASE="buster"
-LVAR_DEBIAN_VERSION="10.02"
+LVAR_DEBIAN_VERSION="10.5"
 
 LVAR_S6_OVERLAY_CPUARCH="$(_getCpuArch s6_overlay)"
 LVAR_S6_OVERLAY_VERSION="v1.22.1.0"
