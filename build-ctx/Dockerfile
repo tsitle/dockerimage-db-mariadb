@@ -1,6 +1,6 @@
 #
 # Based on
-#   https://github.com/linuxserver/docker-mariadb/tree/110.3.18mariabionic-ls37
+#   https://github.com/linuxserver/docker-mariadb/tree/110.4.19mariabionic-ls20
 # and
 #   https://github.com/linuxserver/docker-baseimage-ubuntu branch bionic
 #
@@ -41,7 +41,7 @@ ARG OVERLAY_VERSION=${CF_S6_OVERLAY_VERSION}
 ARG OVERLAY_ARCH=${CF_CPUARCH_S6_OVERLAY}
 
 # set environment variables
-ENV DEBIAN_FRONTEND="noninteractive"
+ENV UBUNTU_FRONTEND="noninteractive"
 ENV \
 	HOME="/root" \
 	LANGUAGE="en_US.UTF-8" \
@@ -108,7 +108,7 @@ COPY files/lsio-baseimage_ubuntu_${TMP_UBUNTU_RELEASE}/fs_root/ /
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # environment variables
-ENV DEBIAN_FRONTEND="noninteractive"
+ENV UBUNTU_FRONTEND="noninteractive"
 ENV MYSQL_DIR="/config"
 #ENV DATADIR=$MYSQL_DIR/databases
 ENV DATADIR=/var/lib/mysql
@@ -119,13 +119,12 @@ ENV DATADIR=/var/lib/mysql
 #			gnupg
 
 RUN \
-	#echo "add mariadb repository ****"; \
-	#echo "(redundant on armhf platform, but added for consistent dockerfile on all platforms) ****"; \
-	#apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8 \
-	#&& echo "deb http://mirror.sax.uk.as61049.net/mariadb/repo/${CF_MARIADB_VERSION}/ubuntu bionic main" >> /etc/apt/sources.list.d/mariadb.list \
-	#&& echo "deb-src http://mirror.sax.uk.as61049.net/mariadb/repo/${CF_MARIADB_VERSION}/ubuntu bionic main" >> /etc/apt/sources.list.d/mariadb.list \
-	#&& apt-get update \
-	#|| exit 1; \
+	apt-get install -y --no-install-recommends gnupg2 \
+	&& apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8 \
+	&& echo "deb http://mirror.rackspace.com/mariadb/repo/${CF_MARIADB_VERSION}/ubuntu bionic main" >> /etc/apt/sources.list.d/mariadb.list \
+	&& echo "deb-src http://mirror.rackspace.com/mariadb/repo/${CF_MARIADB_VERSION}/ubuntu bionic main" >> /etc/apt/sources.list.d/mariadb.list \
+	&& apt-get update \
+	|| exit 1; \
 	#
 	echo "**** install runtime packages ****"; \
 	MARIADB_PACK_VER="$(apt-cache policy mariadb-server | grep "Candidate: " | grep "${CF_MARIADB_VERSION}\." | cut -f2- -d: | tr -d [:space:])"; \
@@ -158,7 +157,7 @@ VOLUME /var/lib/mysql
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-ENV DEBIAN_FRONTEND="noninteractive"
+ENV UBUNTU_FRONTEND="noninteractive"
 
 # startup script
 COPY files/custom/docker-entrypoint.sh /usr/local/bin/
@@ -192,7 +191,7 @@ RUN \
 			/root/inc-dbmysql.sh
 
 #
-ENV DEBIAN_FRONTEND=dialog
+ENV UBUNTU_FRONTEND=dialog
 
 WORKDIR /root/
 
